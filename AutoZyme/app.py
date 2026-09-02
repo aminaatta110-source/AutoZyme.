@@ -120,7 +120,7 @@ st.info(
     "This cohort consists of normal population controls carrying pathogenic "
     "variants introduced in silico. It is not patient data and the rankings "
     "shown are not diagnostic. Scores are out of fold, from models that did not "
-    "see the case being scored.", icon="i")
+    "see the case being scored.")
 
 with st.sidebar:
     st.header("Case")
@@ -153,8 +153,7 @@ left, right = st.columns([1.05, 1])
 with left:
     st.subheader("Runs of homozygosity")
     st.pyplot(genome_map(case_blocks,
-                         case["chrom"].iloc[0] if not case.empty else None),
-              use_container_width=True)
+                         case["chrom"].iloc[0] if not case.empty else None))
 with right:
     st.subheader("Ranked candidates")
     view = case.head(top_n)[[c for c in EVIDENCE if c in case.columns]]
@@ -166,7 +165,7 @@ with right:
         styled = styled.apply(
             lambda r: ["background-color: #e6f2ea" if r.get("Gene") == causal else ""
                        for _ in r], axis=1)
-    st.dataframe(styled, hide_index=True, use_container_width=True, height=430)
+    st.dataframe(styled, hide_index=True, height=430)
 
 st.subheader("Evidence for a selected gene")
 if case.empty:
