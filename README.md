@@ -1,5 +1,10 @@
 # AutoZyme
 
+**No patient data were available for this project. All results below were
+obtained on normal population controls with pathogenic variants introduced
+computationally. None of it constitutes clinical validation.** See "Known
+limitations" for what would be needed to validate this on patients.
+
 A prototype for autozygosity-aware ranking of candidate disease genes.
 
 In a consanguineous family an affected child can inherit the same ancestral
@@ -14,23 +19,26 @@ been validated on patient data, and is not for clinical use.
 
 ## Results
 
-Evaluated on 43 cases constructed from 146 Punjabi normal controls
+Evaluated on 36 independent cases constructed from 146 Punjabi normal controls
 (1000 Genomes, chromosomes 1 and 2), with one pathogenic variant introduced
-in silico per case. Mean 60.5 candidate genes per case, 24 distinct causal
-genes, cross-validation grouped by individual.
+in silico per case. Seven individuals with qualifying data on both chromosomes
+were excluded rather than resolved by an arbitrary choice between two
+correlated cases; see the note below. Mean 59.1 candidate genes per case, 23
+distinct causal genes, cross-validation grouped by individual.
 
 | Method | Top 1 | Top 5 | Top 10 | MRR |
 |---|---|---|---|---|
-| Rarity only | 0.047 | 0.140 | 0.326 | 0.149 |
-| CADD only | 0.116 | 0.372 | 0.791 | 0.288 |
-| ROH features only | 0.023 | 0.140 | 0.372 | 0.109 |
-| Integrated | 0.535 | 0.953 | 0.953 | 0.702 |
-| Variant features | 0.535 | 0.953 | 0.977 | 0.702 |
+| Rarity only | 0.028 | 0.333 | 0.333 | 0.129 |
+| CADD only | 0.139 | 0.778 | 0.778 | 0.311 |
+| ROH features only | 0.028 | 0.250 | 0.361 | 0.136 |
+| Integrated | 0.528 | 0.944 | 0.972 | 0.736 |
+| Variant features | 0.611 | 0.972 | 1.000 | 0.770 |
 
-The two arms using variant evidence are identical at rank one. They disagree on
-ten of 43 cases, but the gains and losses cancel, so ROH-derived features
-conferred no measurable advantage in this cohort. Both far exceed single-score
-ordering.
+The variant-only arm outperforms the integrated arm at rank one (61.1% vs
+52.8%). The paired per-case difference is -0.083 (95% CI -0.194 to +0.028),
+an interval that includes zero: these data do not support a measurable
+advantage from ROH-derived features over variant evidence alone, and do not
+establish that adding them is harmful either.
 
 These are normal controls carrying planted variants, not patients. The numbers
 describe prototype behaviour, not clinical performance.
@@ -119,7 +127,21 @@ those cases share a genome. One case per individual is kept at random under a
 fixed seed. Seven individuals were affected here, reducing 50 chromosome-level
 cases to 43 independent ones.
 
-## Three failure modes worth knowing about
+## A note on merging per-chromosome cohorts
+
+Building the cohort separately per chromosome means an individual with
+qualifying ROH blocks on more than one chromosome contributes a case on each.
+Those cases are not independent, since they share a genome and a rare-variant
+background. We tested resolving this by keeping one such case per individual at
+random, repeating the random choice 200 times: point estimates varied
+substantially across resolutions, with variant-only top-1 recall ranging from
+0.442 to 0.674 depending purely on which of a pair of correlated cases was
+kept. Affected individuals are therefore excluded entirely by
+`scripts/merge_cohorts.py`, which is a deterministic operation and gives the
+same 36 cases on every run, rather than resolved by any single arbitrary
+choice.
+
+## Four failure modes worth knowing about
 
 Both produced apparently excellent results and both are general hazards for
 anyone building a similar evaluation.
