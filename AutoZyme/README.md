@@ -14,19 +14,23 @@ been validated on patient data, and is not for clinical use.
 
 ## Results
 
-Evaluated on 27 cases constructed from 146 Punjabi normal controls
-(1000 Genomes, chromosome 2), with one pathogenic variant introduced in silico
-per case:
+Evaluated on 43 cases constructed from 146 Punjabi normal controls
+(1000 Genomes, chromosomes 1 and 2), with one pathogenic variant introduced
+in silico per case. Mean 60.5 candidate genes per case, 24 distinct causal
+genes, cross-validation grouped by individual.
 
 | Method | Top 1 | Top 5 | Top 10 | MRR |
 |---|---|---|---|---|
-| Rarity only | 0.037 | 0.185 | 0.481 | 0.190 |
-| CADD only | 0.148 | 0.481 | 0.815 | 0.319 |
-| ROH features only | 0.037 | 0.222 | 0.407 | 0.154 |
-| Integrated | 0.593 | 0.926 | 0.963 | 0.743 |
-| Variant features | 0.667 | 0.926 | 1.000 | 0.777 |
+| Rarity only | 0.047 | 0.140 | 0.326 | 0.149 |
+| CADD only | 0.116 | 0.372 | 0.791 | 0.288 |
+| ROH features only | 0.023 | 0.140 | 0.372 | 0.109 |
+| Integrated | 0.535 | 0.953 | 0.953 | 0.702 |
+| Variant features | 0.535 | 0.953 | 0.977 | 0.702 |
 
-Mean 52.8 candidate genes per case. Cross-validation grouped by individual.
+The two arms using variant evidence are identical at rank one. They disagree on
+ten of 43 cases, but the gains and losses cancel, so ROH-derived features
+conferred no measurable advantage in this cohort. Both far exceed single-score
+ordering.
 
 These are normal controls carrying planted variants, not patients. The numbers
 describe prototype behaviour, not clinical performance.
@@ -85,10 +89,10 @@ The genomic data is not redistributed here. See `DATA.md` for how to obtain
 it. In outline:
 
 ```bash
-# 1. build the evaluation cohort from a multi-sample VCF
+# 1. build a cohort per chromosome from a multi-sample VCF
 python scripts/build_spikein_multisample.py \
     --vcf pjl_chr2.vcf.gz --genes genes.bed \
-    --disease-genes recessive_genes.txt --out cohort/ \
+    --disease-genes recessive_genes.txt --out cohort_chr2/ \
     --min-length-kb 3000
 
 # 2. score cohort/needs_cadd.vcf at https://cadd.gs.washington.edu/score
@@ -101,13 +105,21 @@ python scripts/build_spikein_cohort.py phase2 \
 # 4. resample planted feature values from the cohort's own distributions
 python scripts/replant.py --cohort cohort/
 
-# 5. run the ablation
+# 5. merge the per-chromosome cohorts, keeping one case per individual
+python scripts/merge_cohorts.py \
+    --inputs cohort_chr1 cohort_chr2 --out cohort/
+
+# 6. run the ablation
 python scripts/run_ablation_real.py --cohort cohort/
 ```
 
-Step 4 is not optional. See below.
+Step 4 is not optional; see below. Step 5 matters because an individual with
+qualifying blocks on more than one chromosome yields a case per chromosome, and
+those cases share a genome. One case per individual is kept at random under a
+fixed seed. Seven individuals were affected here, reducing 50 chromosome-level
+cases to 43 independent ones.
 
-## Two failure modes worth knowing about
+## Three failure modes worth knowing about
 
 Both produced apparently excellent results and both are general hazards for
 anyone building a similar evaluation.
@@ -136,8 +148,9 @@ intergenic while the pipeline reported them as genic.
 ## Known limitations
 
 - Not validated on patients. The evaluation cohort is healthy individuals.
-- 27 cases; the ablation comparing feature sets is underpowered.
-- Chromosome 2 only in the reported run.
+- 43 cases. The ablation comparing feature sets returns a clean null rather
+  than an underpowered comparison, but the cohort remains small.
+- Chromosomes 1 and 2 only; the remaining autosomes are not processed.
 - Layer 1 was not compared against an established caller. AutoMap requires AD
   and DP annotations, which the 1000 Genomes phased panel does not carry.
 - Ranks genes, not variants within a gene.
