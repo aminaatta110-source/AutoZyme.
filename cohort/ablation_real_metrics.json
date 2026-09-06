@@ -1,0 +1,42 @@
+{
+  "data_source": "SPIKE-IN on real 1000 Genomes samples",
+  "n_cases_built": 43,
+  "n_cases_evaluated": 43,
+  "causal_gene_in_block_rate": 1.0,
+  "arms": {
+    "variant_only": {
+      "n_cases": 43,
+      "top_1": 0.5348837209302325,
+      "top_3": 0.8604651162790697,
+      "top_5": 0.9534883720930233,
+      "top_10": 0.9767441860465116,
+      "mrr": 0.7020487264673312,
+      "median_rank": 1.0,
+      "mean_rank": 2.127906976744186,
+      "mean_candidates_per_case": 60.46511627906977
+    },
+    "roh_only": {
+      "n_cases": 43,
+      "top_1": 0.023255813953488372,
+      "top_3": 0.046511627906976744,
+      "top_5": 0.13953488372093023,
+      "top_10": 0.37209302325581395,
+      "mrr": 0.10882136879121895,
+      "median_rank": 18.0,
+      "mean_rank": 27.476744186046513,
+      "mean_candidates_per_case": 60.46511627906977
+    },
+    "integrated": {
+      "n_cases": 43,
+      "top_1": 0.5348837209302325,
+      "top_3": 0.8837209302325582,
+      "top_5": 0.9534883720930233,
+      "top_10": 0.9534883720930233,
+      "mrr": 0.7018272425249169,
+      "median_rank": 1.0,
+      "mean_rank": 2.8372093023255816,
+      "mean_candidates_per_case": 60.46511627906977
+    }
+  },
+  "brier_integrated": 0.01286258853741159
+}
