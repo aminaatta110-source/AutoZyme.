@@ -56,7 +56,14 @@ block-geometry features plus within-case percentile versions of the competitive
 ones. Scored with gradient-boosted trees and sorted within each case.
 
 **Layer 3** (`app.py`) — Streamlit dashboard: autosome map of the individual's
-blocks, ranked shortlist, per-gene evidence panel.
+blocks, ranked shortlist, per-gene evidence panel. Browses the included
+evaluation cohort.
+
+**Upload prototype** (`app_upload.py`) — the same layers run on a new VCF you
+upload, instead of a case already in the cohort. Parsing, ROH detection and
+candidate assembly run immediately; ranking needs a CADD round-trip, since
+CADD is an external batch service and not something that returns instantly.
+See "Score a new sample" below.
 
 ## Try it
 
@@ -81,6 +88,40 @@ python scripts/run_ablation_real.py --cohort cohort/
 inspection. It is not what produced the reported numbers; those come from
 out-of-fold predictions where each case is scored by a model that never saw it.
 Regenerate it with `python scripts/train_model.py --cohort cohort/`.
+
+## Score a new sample
+
+`app_upload.py` runs the same pipeline on a VCF you upload, rather than one
+already sitting in `cohort/`:
+
+```bash
+streamlit run app_upload.py -- --cohort cohort/
+```
+
+You will also need a gene annotation table (BED-like: `chrom`, `start`, `end`,
+`gene`) to upload alongside the VCF — the same kind of file used to build the
+evaluation cohort. It is not bundled here since it is a large reference file;
+see `DATA.md`.
+
+What happens is split across two stages, and the split is not a shortcut:
+
+1. **Runs live.** Parsing (`autozyme/vcf_io.py`), ROH detection
+   (`autozyme/roh.py`) and candidate-gene assembly happen immediately in the
+   browser session. Allele frequency for the rare-variant filter comes
+   straight from the VCF's own `AF` INFO field, the same source
+   `scripts/build_spikein_cohort.py` uses, so no external frequency lookup is
+   needed for this part.
+2. **Needs a round-trip.** Ranking needs a CADD score per candidate variant,
+   and CADD (https://cadd.gs.washington.edu/score) is a batch web service, not
+   an API that answers in the seconds after a click. The app downloads a
+   `needs_cadd.vcf` containing only the sites that need scoring; submit that
+   to CADD (GRCh38, include annotations), then upload the result back into
+   the app to finish ranking. Scoring itself uses the real trained model in
+   `cohort/ranker.joblib` and the same `autozyme/cohort.py` feature pipeline
+   used throughout — nothing about the final ranking is simulated.
+
+Like the rest of AutoZyme, this is a prototype. It has not been validated on
+patient data and the output is not diagnostic.
 
 ## A note on molecular consequence
 
